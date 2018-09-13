@@ -6,6 +6,15 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Build import cythonize
 
+# only use safe raw_input with Python-2, input is considered harmful
+try:
+    from past.builtins import raw_input  # try python-future
+except ImportError:
+    try:
+        raw_input()  # Python-2
+    except NameError:
+        raw_input = input  # Python-3
+
 DIRNAME = os.path.dirname(__file__)
 SPA_C_URL = r'https://midcdmz.nrel.gov/apps/download.pl'
 SPA_H_URL = r'https://midcdmz.nrel.gov/spa/spa.h'
@@ -16,10 +25,10 @@ with open(os.path.join(DIRNAME, LICENSE)) as f:
     print(f.read())
 
 print('\nEnter the following information to accept the NREL LICENSE ...\n')
-VALUES['name'] = input('Name: ')
-VALUES['company'] = input('Company (or enter "Individual"): ')
-VALUES['country'] = input('Country: ')
-VALUES['email'] = input('Email (optional): ')
+VALUES['name'] = raw_input('Name: ')
+VALUES['company'] = raw_input('Company (or enter "Individual"): ')
+VALUES['country'] = raw_input('Country: ')
+VALUES['email'] = raw_input('Email (optional): ')
 DATA = parse.urlencode(VALUES).encode('ascii')
 
 # get spa.c
