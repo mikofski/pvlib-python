@@ -6,16 +6,44 @@ PV modules and cells.
 import numpy as np
 
 
-TEMPERATURE_MODEL_PARAMETERS = {
-    'sapm': {
+class _IndexAttrMeta(type):
+    # __getitem__ only works on instances, not classes, so need to redefine
+    # type, which is what classes are made from
+    def __getitem__(cls, item):
+        # retrieve items by index like a dictionary
+        return getattr(cls, str(item).lower())
+
+
+class TEMPERATURE_MODEL_PARAMETERS(metaclass=_IndexAttrMeta):
+    """Dictionary of temperature parameters organized by model.
+
+    There are keys for each model at the top level. Currently there are two models,
+    ``sapm`` for the Sandia Array Performance Model, and ``pvsyst``. Each model has
+    a dictionary of configurations with a dictionary of the model parameters
+    associated with it. Retrieve a parameters by indexing the model and
+    configuration by name.
+
+    Example
+    -------
+    Retrieve the open rack glass-polymer configuration for SAPM::
+
+        from pvlib.temperature import TEMPERATURE_MODEL_PARAMS
+        temp_parmas = TEMPERATURE_MODEL_PARAMETERS['sapm']['open_rack_glass_polymer']
+    """
+    # NOTE: only Python-2 uses __metaclass__,
+    # Python-3 passes this to the class as an argument,
+    # see: https://docs.python.org/3/library/2to3.html#2to3fixer-metaclass
+    # __metaclass__ = _IndexAttrMeta
+
+    #: Sandia Array Performance Model
+    sapm = {
         'open_rack_glass_glass': {'a': -3.47, 'b': -.0594, 'deltaT': 3},
         'close_mount_glass_glass': {'a': -2.98, 'b': -.0471, 'deltaT': 1},
         'open_rack_glass_polymer': {'a': -3.56, 'b': -.0750, 'deltaT': 3},
-        'insulated_back_glass_polymer': {'a': -2.81, 'b': -.0455, 'deltaT': 0},
-    },
-    'pvsyst': {'freestanding': {'u_c': 29.0, 'u_v': 0},
-               'insulated': {'u_c': 15.0, 'u_v': 0}}
-}
+        'insulated_back_glass_polymer': {'a': -2.81, 'b': -.0455, 'deltaT': 0}}
+    #: PVSyst model
+    pvsyst = {'freestanding': {'u_c': 29.0, 'u_v': 0},
+              'insulated': {'u_c': 15.0, 'u_v': 0}}
 
 
 def _temperature_model_params(model, parameter_set):

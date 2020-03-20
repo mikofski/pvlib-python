@@ -177,3 +177,11 @@ includes a few more keyword arguments and attributes that are specific
 to trackers, plus the
 :py:meth:`~pvlib.tracking.SingleAxisTracker.singleaxis` method. It also
 overrides the `get_aoi` and `get_irradiance` methods.
+
+
+.. _temperature
+
+Temperature
+-----------
+So many temperature models, but this dictionary is useful because
+it has parameters for all of them.

@@ -234,6 +234,8 @@ PV temperature models
    temperature.sapm_module
    temperature.pvsyst_cell
    temperature.faiman
+   temperature.TEMPERATURE_MODEL_PARAMETERS
+
 
 Single diode models
 -------------------
