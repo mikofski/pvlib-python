@@ -53,6 +53,8 @@ import numpy as np
 import pandas as pd
 from pvlib import irradiance, pvsystem, iam
 
+EPS = 1e-3  # cos(0.001) = 0.999999999 so v. close to unity
+MAXROWS = 15  # assumes 40% GCR and modules 1-m high
 
 def solar_projection(solar_zenith, solar_azimuth, system_azimuth):
     """
@@ -219,6 +221,9 @@ def ground_sky_angles(f_z, gcr, height, tilt, pitch):
     #  +----------\<---------P----*+----->\---- ground
     #             1<-----1-fz-----><--fz--0---- fraction of ground
 
+    # if tilt is close to zero, then these angles don't exist!
+    if tilt < EPS or tilt > (np.pi-EPS):
+        return np.zeros_like(f_z), np.zeros_like(f_z)
     gcr_prime = _gcr_prime(gcr, height, tilt, pitch)
     tilt_prime = np.pi - tilt
     opposite_side = np.sin(tilt_prime)
@@ -278,11 +283,18 @@ def ground_sky_angles_prev(f_z, gcr, height, tilt, pitch):
 
     gcr_prime = _gcr_prime(gcr, height, tilt, pitch)
     tilt_prime = np.pi - tilt
+    z = f_z*pitch
+    # if tilt is close to zero, then gcr-prime is infinite
+    # so use edges of modules as R2R origin instead
+    if tilt < EPS or tilt > (np.pi-EPS):
+        psi_1 = np.arctan2(height, -z)
+        psi_0 = np.arctan2(
+            gcr*np.sin(tilt_prime) + height/pitch, (1+f_z) + gcr*np.cos(tilt_prime))
+        return psi_0, psi_1
     # angle to top of previous panel beyond the current row
     psi_0 = np.arctan2(
         np.sin(tilt_prime), (1+f_z)/gcr_prime + np.cos(tilt_prime))
     # angle to bottom of previous panel
-    z = f_z*pitch
     # other forms raise division by zero errors
     # avoid division by zero errors
     psi_1 = np.arctan2(height, height/np.tan(tilt) - z)
@@ -312,6 +324,9 @@ def f_z0_limit(gcr, height, tilt, pitch):
     between previous rows, where the angle :math:`\\psi` is tangent to both the
     top and bottom of panels.
     """
+    # if tilt is zero, then tan_psi_top is also zero, and fz limit is inf
+    if tilt < EPS or tilt > (np.pi-EPS):
+        return MAXROWS * height/pitch  # scale proportional to height
     tan_psi_t_x0 = sky_angle_0_tangent(gcr, tilt)
     # tan_psi_t_x0 = gcr * np.sin(tilt) / (1.0 - gcr * np.cos(tilt))
     return height/pitch * (1/np.tan(tilt) + 1/tan_psi_t_x0)
@@ -363,6 +378,12 @@ def ground_sky_angles_next(f_z, gcr, height, tilt, pitch):
     # angle to bottom of next panel
     fzprime = 1-f_z
     zprime = fzprime*pitch
+    # if tilt is close to zero, then gcr-prime is infinite
+    # so use edges of modules as R2R origin instead
+    if tilt < EPS or tilt > (np.pi-EPS):
+        psi_0 = np.arctan2(height, -zprime)
+        psi_1 = np.arctan2(
+            gcr*np.sin(tilt) + height/pitch, (1+fzprime) + gcr*np.cos(tilt))
     # other forms raise division by zero errors
     # avoid division by zero errors
     psi_0 = np.arctan2(height, height/np.tan(tilt_prime) - zprime)
@@ -394,6 +415,9 @@ def f_z1_limit(gcr, height, tilt, pitch):
     visible between the next rows, where the angle :math:`\\psi` is tangent to
     both the top and bottom of panels.
     """
+    # if tilt is zero, then tan_psi_top is also zero, and fz limit is inf
+    if tilt < EPS or tilt > (np.pi-EPS):
+        return MAXROWS * height/pitch  # scale proportional to height
     tan_psi_t_x1 = sky_angle_0_tangent(gcr, np.pi-tilt)
     # tan_psi_t_x1 = gcr * np.sin(pi-tilt) / (1.0 - gcr * np.cos(pi-tilt))
     return height/pitch * (1/tan_psi_t_x1 - 1/np.tan(tilt))

@@ -118,6 +118,10 @@ def test_ground_sky_angles():
         pvlib.infinite_sheds.ground_sky_angles(0, *ARGS), (PSI_0_X0, PSI_1_X0))
     assert np.allclose(
         pvlib.infinite_sheds.ground_sky_angles(1, *ARGS), (PSI_0_X1, PSI_1_X1))
+    assert np.allclose(
+        pvlib.infinite_sheds.ground_sky_angles(0, 0.4, 1, 0, 5), (0, 0))
+    assert np.allclose(
+        pvlib.infinite_sheds.ground_sky_angles(1, 0.4, 1, 0, 5), (0, 0))
 
 
 FZ0_LIMIT = 1.4619022000815438  # pvlib.infinite_sheds.f_z0_limit(*ARGS)
