@@ -471,8 +471,8 @@ def heliocentric_longitude(jme):
     l4 = sum_mult_cos_add_mult(L4, jme)
     l5 = sum_mult_cos_add_mult(L5, jme)
 
-    l_rad = (l0 + l1 * jme + l2 * jme**2 + l3 * jme**3 + l4 * jme**4 +
-             l5 * jme**5)/10**8
+    l_rad = (l0 + jme * (l1 + jme * (l2 + jme * (l3 + jme * (l4 +
+             jme * l5)))))/10**8
     l = np.rad2deg(l_rad)
     return l % 360
 
@@ -494,7 +494,7 @@ def heliocentric_radius_vector(jme):
     r3 = sum_mult_cos_add_mult(R3, jme)
     r4 = sum_mult_cos_add_mult(R4, jme)
 
-    r = (r0 + r1 * jme + r2 * jme**2 + r3 * jme**3 + r4 * jme**4)/10**8
+    r = (r0 + jme * (r1 + jme * (r2 + jme * (r3 + jme * r4))))/10**8
     return r
 
 
@@ -512,46 +512,36 @@ def geocentric_latitude(heliocentric_latitude):
 
 @jcompile('float64(float64)', nopython=True)
 def mean_elongation(julian_ephemeris_century):
-    x0 = (297.85036
-          + 445267.111480 * julian_ephemeris_century
-          - 0.0019142 * julian_ephemeris_century**2
-          + julian_ephemeris_century**3 / 189474)
+    t = julian_ephemeris_century
+    x0 = 297.85036 + t * (445267.111480 + t * (-0.0019142 + t / 189474))
     return x0
 
 
 @jcompile('float64(float64)', nopython=True)
 def mean_anomaly_sun(julian_ephemeris_century):
-    x1 = (357.52772
-          + 35999.050340 * julian_ephemeris_century
-          - 0.0001603 * julian_ephemeris_century**2
-          - julian_ephemeris_century**3 / 300000)
+    t = julian_ephemeris_century
+    x1 = 357.52772 + t * (35999.050340 + t * (-0.0001603 - t / 300000))
     return x1
 
 
 @jcompile('float64(float64)', nopython=True)
 def mean_anomaly_moon(julian_ephemeris_century):
-    x2 = (134.96298
-          + 477198.867398 * julian_ephemeris_century
-          + 0.0086972 * julian_ephemeris_century**2
-          + julian_ephemeris_century**3 / 56250)
+    t = julian_ephemeris_century
+    x2 = 134.96298 + t * (477198.867398 + t * (0.0086972 + t / 56250))
     return x2
 
 
 @jcompile('float64(float64)', nopython=True)
 def moon_argument_latitude(julian_ephemeris_century):
-    x3 = (93.27191
-          + 483202.017538 * julian_ephemeris_century
-          - 0.0036825 * julian_ephemeris_century**2
-          + julian_ephemeris_century**3 / 327270)
+    t = julian_ephemeris_century
+    x3 = 93.27191 + t * (483202.017538 + t * (-0.0036825 + t / 327270))
     return x3
 
 
 @jcompile('float64(float64)', nopython=True)
 def moon_ascending_longitude(julian_ephemeris_century):
-    x4 = (125.04452
-          - 1934.136261 * julian_ephemeris_century
-          + 0.0020708 * julian_ephemeris_century**2
-          + julian_ephemeris_century**3 / 450000)
+    t = julian_ephemeris_century
+    x4 = 125.04452 + t * (-1934.136261 + t * (0.0020708 + t / 450000))
     return x4
 
 
@@ -590,10 +580,9 @@ def longitude_obliquity_nutation(julian_ephemeris_century, x0, x1, x2, x3, x4,
 @jcompile('float64(float64)', nopython=True)
 def mean_ecliptic_obliquity(julian_ephemeris_millennium):
     U = 1.0*julian_ephemeris_millennium/10
-    e0 = (84381.448 - 4680.93 * U - 1.55 * U**2
-          + 1999.25 * U**3 - 51.38 * U**4 - 249.67 * U**5
-          - 39.05 * U**6 + 7.12 * U**7 + 27.87 * U**8
-          + 5.79 * U**9 + 2.45 * U**10)
+    e0 = (84381.448 + U * (-4680.93 + U * (-1.55 + U * (1999.25 +
+          U * (-51.38 + U * (-249.67 + U * (-39.05 + U * (7.12 +
+          U * (27.87 + U * (5.79 + U * 2.45))))))))))
     return e0
 
 
@@ -620,8 +609,9 @@ def apparent_sun_longitude(geocentric_longitude, longitude_nutation,
 
 @jcompile('float64(float64, float64)', nopython=True)
 def mean_sidereal_time(julian_day, julian_century):
+    t = julian_century
     v0 = (280.46061837 + 360.98564736629 * (julian_day - 2451545)
-          + 0.000387933 * julian_century**2 - julian_century**3 / 38710000)
+          + t * (t * (0.000387933 - t / 38710000)))
     return v0 % 360.0
 
 
@@ -814,11 +804,9 @@ def topocentric_azimuth_angle(topocentric_astronomers_azimuth):
 
 @jcompile('float64(float64)', nopython=True)
 def sun_mean_longitude(julian_ephemeris_millennium):
-    M = (280.4664567 + 360007.6982779 * julian_ephemeris_millennium
-         + 0.03032028 * julian_ephemeris_millennium**2
-         + julian_ephemeris_millennium**3 / 49931
-         - julian_ephemeris_millennium**4 / 15300
-         - julian_ephemeris_millennium**5 / 2000000)
+    t = julian_ephemeris_millennium
+    M = (280.4664567 + t * (360007.6982779 + t * (0.03032028 +
+         t * (1 / 49931 + t * (-1 / 15300 - t / 2000000)))))
     return M
 
 
@@ -1268,105 +1256,93 @@ def calculate_deltat(year, month):
 
     y = year + (month - 0.5)/12
 
-    deltat = np.where(year < -500,
+    t = (y - 1820) / 100
+    deltat = np.where(year < -500, -20 + t * (32 * t), 0)
 
-                      -20+32*((y-1820)/100)**2, 0)
-
+    t = y / 100
     deltat = np.where((-500 <= year) & (year < 500),
 
-                      10583.6-1014.41*(y/100)
-                      + 33.78311*(y/100)**2
-                      - 5.952053*(y/100)**3
-                      - 0.1798452*(y/100)**4
-                      + 0.022174192*(y/100)**5
-                      + 0.0090316521*(y/100)**6, deltat)
+                      10583.6 + t * (-1014.41 + t * (33.78311 +
+                      t * (-5.952053 + t * (-0.1798452 +
+                      t * (0.022174192 + t * 0.0090316521)))), deltat)
 
+    t = (y - 1000) / 100
     deltat = np.where((500 <= year) & (year < 1600),
 
-                      1574.2-556.01*((y-1000)/100)
-                      + 71.23472*((y-1000)/100)**2
-                      + 0.319781*((y-1000)/100)**3
-                      - 0.8503463*((y-1000)/100)**4
-                      - 0.005050998*((y-1000)/100)**5
-                      + 0.0083572073*((y-1000)/100)**6, deltat)
+                      1574.2 + t * (-556.01 + t * (71.23472 +
+                      t * (0.319781 + t * (-0.8503463 +
+                      t * (-0.005050998 + t * 0.0083572073)))), deltat)
 
+    t = y - 1600
     deltat = np.where((1600 <= year) & (year < 1700),
 
-                      120-0.9808*(y-1600)
-                      - 0.01532*(y-1600)**2
-                      + (y-1600)**3/7129, deltat)
+                      120 + t * (-0.9808 + t * (-0.01532 + t / 7129)),
+                      deltat)
 
+    t = y - 1700
     deltat = np.where((1700 <= year) & (year < 1800),
 
-                      8.83+0.1603*(y-1700)
-                      - 0.0059285*(y-1700)**2
-                      + 0.00013336*(y-1700)**3
-                      - (y-1700)**4/1174000, deltat)
+                      8.83 + t * (0.1603 + t * (-0.0059285 +
+                      t * (0.00013336 - t / 1174000))), deltat)
 
+    t = y - 1800
     deltat = np.where((1800 <= year) & (year < 1860),
 
-                      13.72-0.332447*(y-1800)
-                      + 0.0068612*(y-1800)**2
-                      + 0.0041116*(y-1800)**3
-                      - 0.00037436*(y-1800)**4
-                      + 0.0000121272*(y-1800)**5
-                      - 0.0000001699*(y-1800)**6
-                      + 0.000000000875*(y-1800)**7, deltat)
+                      13.72 + t * (-0.332447 + t * (0.0068612 +
+                      t * (0.0041116 + t * (-0.00037436 +
+                      t * (0.0000121272 + t * (-0.0000001699 +
+                      t * 0.000000000875))))), deltat)
 
+    t = y - 1860
     deltat = np.where((1860 <= year) & (year < 1900),
 
-                      7.62+0.5737*(y-1860)
-                      - 0.251754*(y-1860)**2
-                      + 0.01680668*(y-1860)**3
-                      - 0.0004473624*(y-1860)**4
-                      + (y-1860)**5/233174, deltat)
+                      7.62 + t * (0.5737 + t * (-0.251754 +
+                      t * (0.01680668 + t * (-0.0004473624 +
+                      t / 233174))), deltat)
 
+    t = y - 1900
     deltat = np.where((1900 <= year) & (year < 1920),
 
-                      -2.79+1.494119*(y-1900)
-                      - 0.0598939*(y-1900)**2
-                      + 0.0061966*(y-1900)**3
-                      - 0.000197*(y-1900)**4, deltat)
+                      -2.79 + t * (1.494119 + t * (-0.0598939 +
+                      t * (0.0061966 - 0.000197 * t))), deltat)
 
+    t = y - 1920
     deltat = np.where((1920 <= year) & (year < 1941),
 
-                      21.20+0.84493*(y-1920)
-                      - 0.076100*(y-1920)**2
-                      + 0.0020936*(y-1920)**3, deltat)
+                      21.20 + t * (0.84493 + t * (-0.076100 + t * 0.0020936)),
+                      deltat)
 
+    t = y - 1950
     deltat = np.where((1941 <= year) & (year < 1961),
 
-                      29.07+0.407*(y-1950)
-                      - (y-1950)**2/233
-                      + (y-1950)**3/2547, deltat)
+                      29.07 + t * (0.407 + t * (-1 / 233 + t / 2547)),
+                      deltat)
 
+    t = y - 1975
     deltat = np.where((1961 <= year) & (year < 1986),
 
-                      45.45+1.067*(y-1975)
-                      - (y-1975)**2/260
-                      - (y-1975)**3/718, deltat)
+                      45.45 + t * (1.067 + t * (-1 / 260 - t / 718)),
+                      deltat)
 
+    t = y - 2000
     deltat = np.where((1986 <= year) & (year < 2005),
 
-                      63.86+0.3345*(y-2000)
-                      - 0.060374*(y-2000)**2
-                      + 0.0017275*(y-2000)**3
-                      + 0.000651814*(y-2000)**4
-                      + 0.00002373599*(y-2000)**5, deltat)
+                      63.86 + t * (0.3345 + t * (-0.060374 +
+                      t * (0.0017275 + t * (0.000651814 +
+                      t * 0.00002373599)))), deltat)
 
     deltat = np.where((2005 <= year) & (year < 2050),
 
-                      62.92+0.32217*(y-2000)
-                      + 0.005589*(y-2000)**2, deltat)
+                      62.92 + t * (0.32217 + t * 0.005589), deltat)
 
+    t = (y - 1820) / 100
     deltat = np.where((2050 <= year) & (year < 2150),
 
-                      -20+32*((y-1820)/100)**2
-                      - 0.5628*(2150-y), deltat)
+                      -205.724 + t * (56.28 + t * 32), deltat)
 
     deltat = np.where(year >= 2150,
 
-                      -20+32*((y-1820)/100)**2, deltat)
+                      -20 + t * (32 * t), deltat)
 
     deltat = deltat.item() if np.isscalar(year) & np.isscalar(month)\
         else deltat
