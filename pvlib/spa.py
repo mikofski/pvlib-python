@@ -472,7 +472,7 @@ def heliocentric_longitude(jme):
     l5 = sum_mult_cos_add_mult(L5, jme)
 
     l_rad = (l0 + jme * (l1 + jme * (l2 + jme * (l3 + jme * (l4 +
-             jme * l5)))))/10**8
+             jme * l5)))))/1e8
     l = np.rad2deg(l_rad)
     return l % 360
 
@@ -481,7 +481,7 @@ def heliocentric_latitude(jme):
     b0 = sum_mult_cos_add_mult(B0, jme)
     b1 = sum_mult_cos_add_mult(B1, jme)
 
-    b_rad = (b0 + b1 * jme)/10**8
+    b_rad = (b0 + b1 * jme)/1e8
     b = np.rad2deg(b_rad)
     return b
 
@@ -494,7 +494,7 @@ def heliocentric_radius_vector(jme):
     r3 = sum_mult_cos_add_mult(R3, jme)
     r4 = sum_mult_cos_add_mult(R4, jme)
 
-    r = (r0 + jme * (r1 + jme * (r2 + jme * (r3 + jme * r4))))/10**8
+    r = (r0 + jme * (r1 + jme * (r2 + jme * (r3 + jme * r4))))/1e8
     return r
 
 
@@ -1031,7 +1031,7 @@ def solar_position(unixtime, lat, lon, elev, pressure, temp, delta_t,
     unixtime : numpy array
         Array of unix/epoch timestamps to calculate solar position for.
         Unixtime is the number of seconds since Jan. 1, 1970 00:00:00 UTC.
-        A pandas.DatetimeIndex is easily converted using .view(np.int64)/10**9
+        A pandas.DatetimeIndex is easily converted using .view(np.int64)/1e9
     lat : float
         Latitude to calculate solar position for
     lon : float
@@ -1210,7 +1210,7 @@ def earthsun_distance(unixtime, delta_t, numthreads):
     unixtime : numpy array
         Array of unix/epoch timestamps to calculate solar position for.
         Unixtime is the number of seconds since Jan. 1, 1970 00:00:00 UTC.
-        A pandas.DatetimeIndex is easily converted using .view(np.int64)/10**9
+        A pandas.DatetimeIndex is easily converted using .view(np.int64)/1e9
     delta_t : float or array
         Difference between terrestrial time and UT. USNO has tables.
     numthreads : int
